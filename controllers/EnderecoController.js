@@ -1,4 +1,32 @@
-const {Endereco} = require('../models')
+const axios = require('axios');
+const {Endereco} = require('../models');
+
+exports.createEnderecoCep = async (req, res) => {
+    try {
+        const { cep } = req.params;
+        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+
+        if (response.data.erro) {
+            return res.status(404).json({ error: 'CEP não encontrado' });
+        }
+
+        const { logradouro, complemento, bairro, cidade, estado, municipioibge } = response.data;
+
+        novoEndereco = await Endereco.create({
+            Cep: cep,
+            Logradouro: logradouro,
+            Numero: req.body.Numero, 
+            Complemento: complemento || req.body.Complemento,
+            Bairro: bairro,
+            Cidade: cidade,
+            Estado: estado,
+            MunicipioIBGE: municipioibge,
+        });
+
+        res.status(201).json(novoEndereco);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar o endereço', details: error.message });
+    }};
 
 exports.createEndereco = async (req, res) => {
     try {
